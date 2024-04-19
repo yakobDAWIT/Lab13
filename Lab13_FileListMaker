@@ -1,0 +1,184 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class Main
+{
+    private static final ArrayList<String> list = new ArrayList<>();
+    private static boolean needsToBeSaved = false;
+    private static String currentFileName = "";
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            displayMenu();
+
+            String option = scanner.nextLine().trim().toUpperCase();
+            switch (option) {
+                case "A":
+                    addItem(scanner);
+                    break;
+                case "D":
+                    deleteItem(scanner);
+                    break;
+                case "V":
+                    viewList();
+                    break;
+                case "O":
+                    openList(scanner);
+                    break;
+                case "S":
+                    saveList(scanner);
+                    break;
+                case "C":
+                    clearList();
+                    break;
+                case "Q":
+                    if (needsToBeSaved) {
+                        System.out.println("Unsaved changes! Do you want to quit? (Y/N)");
+                        String quitConfirmation = scanner.nextLine().trim().toUpperCase();
+                        if (quitConfirmation.equals("Y")) {
+                            System.out.println("Exiting program.");
+                            return;
+                        }
+                    }
+                    else {
+                        System.out.println("Exiting program.");
+                        return;
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    private static void displayMenu() {
+        System.out.println("Menu:");
+        System.out.println("A - Add an item");
+        System.out.println("D - Delete an item");
+        System.out.println("V - View the list");
+        System.out.println("O - Open a list file from disk");
+        System.out.println("S - Save the current list to disk");
+        System.out.println("C - Clear the current list");
+        System.out.println("Q - Quit the program");
+        System.out.print("Enter your option: ");
+    }
+
+    private static void addItem(Scanner scanner) {
+        System.out.print("Enter item to add: ");
+        String newItem = scanner.nextLine().trim();
+        if (!newItem.isEmpty()) {
+            list.add(newItem);
+            needsToBeSaved = true;
+            System.out.println("Item added successfully.");
+        }
+        else {
+            System.out.println("Item cannot be empty. Please try again.");
+        }
+    }
+
+    private static void deleteItem(Scanner scanner) {
+        if (list.isEmpty()) {
+            System.out.println("List is empty.");
+            return;
+        }
+
+        System.out.println("Current List:");
+        for (int i = 0; i < list.size(); i++) {
+            System.out.println((i + 1) + ". " + list.get(i));
+        }
+
+        System.out.print("Enter index of item to delete: ");
+        int index = scanner.nextInt();
+        scanner.nextLine();
+
+        if (index >= 1 && index <= list.size()) {
+            list.remove(index - 1);
+            needsToBeSaved = true;
+            System.out.println("Item deleted successfully.");
+        }
+        else {
+            System.out.println("Invalid index. Please try again.");
+        }
+    }
+
+    private static void viewList() {
+        if (list.isEmpty()) {
+            System.out.println("List is empty.");
+        }
+        else {
+            System.out.println("Current List:");
+            for (int i = 0; i < list.size(); i++) {
+                System.out.println((i + 1) + ". " + list.get(i));
+            }
+        }
+    }
+
+    private static void openList(Scanner scanner) {
+        if (needsToBeSaved) {
+            System.out.println("Unsaved changes! Do you want to save the current list? (Y/N)");
+            String saveConfirmation = scanner.nextLine().trim().toUpperCase();
+            if (saveConfirmation.equals("Y")) {
+                saveList(scanner);
+            }
+        }
+
+        System.out.print("Enter filename to open: ");
+        String filename = scanner.nextLine().trim();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            list.clear();
+            String line;
+            while ((line = br.readLine()) != null) {
+                list.add(line);
+            }
+            System.out.println("List loaded successfully from " + filename);
+            needsToBeSaved = false;
+            currentFileName = filename;
+        }
+        catch (IOException e) {
+            System.out.println("Unable to open file.");
+        }
+    }
+
+    private static void saveList(Scanner scanner) {
+        if (list.isEmpty()) {
+            System.out.println("List is empty. Nothing to save.");
+            return;
+        }
+
+        String filename;
+        if (!currentFileName.isEmpty()) {
+            filename = currentFileName;
+        }
+        else {
+            System.out.print("Enter filename to save: ");
+            filename = scanner.nextLine().trim() + ".txt";
+        }
+
+        try (PrintWriter writer = new PrintWriter(filename)) {
+            for (String item : list) {
+                writer.println(item);
+            }
+            System.out.println("List saved successfully to " + filename);
+            needsToBeSaved = false;
+            currentFileName = filename;
+        }
+        catch (IOException e) {
+            System.out.println("Unable to save file.");
+        }
+    }
+
+    private static void clearList() {
+        if (!list.isEmpty()) {
+            list.clear();
+            System.out.println("List cleared successfully.");
+            needsToBeSaved = true;
+        }
+        else {
+            System.out.println("List is already empty.");
+        }
+    }
+}
